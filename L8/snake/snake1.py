@@ -21,6 +21,7 @@ body = [(x,y)] # 蛇的身体，数组类型，包含了所有组成蛇的方块
 font = pygame.font.SysFont('arial', 54)  # 字体
 score = 0 # 分数
 isgo = False
+applelist = [(300,100),(400,100),(500,100)]  # 3个苹果的初始坐标
 
 
 def show_score():
@@ -58,22 +59,31 @@ def draw_snake():
     
 def check_eaten():
     """检查是吃到了苹果"""
-    if x == applex and y == appley:
-        return True
-    else:
-        return False
-
+    for i, cor in enumerate(applelist):
+        if x == cor[0] and y == cor[1]:
+            return i
+    return -1
 
 def reset_game():
-    x = 100
-    y = 100
-    body = [(x,y)]
+    global isgo,x,y,direction,applelist,body,score  # 说明这些是函数外的变量
     isgo = False
+    x = 100 # 蛇头x坐标
+    y = 100 # 蛇头y坐标
     direction = 'right'  # 蛇的运动方向
-    applex = 300 # 苹果x坐标
-    appley = 100 # 苹果y坐标
+    applelist = [(300,100),(400,100),(500,100)]  # 3个苹果的初始坐标
+    body = [(x,y)] # 蛇的身体，数组类型，包含了所有组成蛇的方块坐标
+    score = 0 # 分数
+    
+def new_apple(index):
+    applex = random.randint(0, 1000/size-1)*size
+    appley = random.randint(0, 800/size-1)*size
+    applelist[index] = (applex, appley)
 
+def draw_apples():
+    for cor in applelist:
+        screen.blit(apple_img, (cor[0], cor[1])) 
 
+    
 # 游戏主循环
 while running:
     # 获取所有玩家事件
@@ -94,6 +104,7 @@ while running:
                 if isgo:
                     reset_game()
                 
+                
     # 判断游戏结束
     # 如果游戏结束，展示gameover文字
     if check_gameover():
@@ -113,19 +124,19 @@ while running:
     body.insert(0, (x,y))
 
     # 检查是否吃到了苹果
-    if check_eaten():
+    aindex = check_eaten()
+    if aindex > -1:
         sound.play() # 播放声音
         score += 1 # 分数+1
         # 生成新苹果
-        applex = random.randint(0, 1000/size-1)*size
-        appley = random.randint(0, 800/size-1)*size
+        new_apple(aindex)
     else:
         body.pop() # 删除尾部
         
     screen.fill(bgcolor) # 清除整个画布
     draw_snake() # 画蛇
     show_score() # 展示分数
-    screen.blit(apple_img, (applex, appley)) # 画苹果
+    draw_apples()  # 画苹果
     pygame.display.update() # 刷新整个画布
     timer.tick(10)  # 帧速率，控制刷新速度
 
